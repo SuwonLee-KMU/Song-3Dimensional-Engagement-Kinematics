@@ -6,8 +6,8 @@
 
 classdef vehicleKinematics < handle
   properties
-    missile % pursuer, flightVehicle class instance
-    target  % target, flightVehicle class instance
+    missile           % pursuer, flightVehicle class instance
+    target            % target, flightVehicle class instance
     range             % range between target and missile
     LOSazimuth
     LOSelevation
@@ -39,6 +39,23 @@ classdef vehicleKinematics < handle
       else
         error('invalid target input');
       end
+    end
+    function [statesVector,inputVector] = obj2statesNinputs(obj) 
+      Vt = obj.target.speed;
+      tt = obj.targetElevation;
+      pt = obj.targetAzimuth;
+      Vm = obj.missile.speed;
+      tm = obj.missileElevation;
+      pm = obj.missileAzimuth;
+      tL = obj.LOSelevation;
+      pL = obj.LOSazimuth;
+      r  = obj.range;
+      Azm = obj.missile.Az;
+      Aym = obj.missile.Ay;
+      Azt = obj.target.Az;
+      Ayt = obj.target.Ay;
+      statesVector = [r, tL, pL, Vm, tm, pm, Vt, tt, pt];
+      inputVector  = [Azm,Aym, Azt,Ayt];
     end
   end
 
@@ -83,6 +100,33 @@ classdef vehicleKinematics < handle
       R     = Rgamma*Rchi/(RthetaL*RpsiL);
       theta = atan2(R(1,3),R(3,3));
       psi   = atan2(R(2,1),R(2,2));
+    end
+
+    function dX = dynamics(statesVector,inputVector)
+      r = statesVector(1);
+      tL = statesVector(2);
+      pL = statesVector(3);
+      Vm = statesVector(4);
+      tm = statesVector(5);
+      pm = statesVector(6);
+      Vt = statesVector(7);
+      tt = statesVector(8);
+      pt = statesVector(9);
+      Azm = inputVector(1);
+      Aym = inputVector(2);
+      Azt = inputVector(3);
+      Ayt = inputVector(4);
+
+      rdot  = Vt*cosd(tt)*cosd(pt)-Vm*cosd(tm)*cosd(pm);
+      tLdot = 1/r*(Vt*sind(tt)-Vm*sind(tm));
+      pLdot = 1/(r*cosd(tL))*(Vt*cosd(tt)*sind(pt)-Vm*cosd(tm)*sind(pm));
+      tmdot = Azm/Vm-pLdot*sind(tL)*sind(pm)-tLdot*cosd(pm);
+      pmdot = Aym/(Vm*cosd(tm))+pLdot*tand(tm)*cosd(pm)*sind(tL)-tLdot*tand(tm)*sind(pm)-pLdot*cosd(tL);
+      ttdot = Azt/Vt-pLdot*sind(tL)*sind(pt)-tLdot*cosd(pt);
+      ptdot = Ayt/(Vt*cosd(tt))+pLdot*tand(tt)*cosd(pt)*sind(tL)-tLdot*tand(tt)*sind(pt)-pLdot*cosd(tL);
+      Vmdot = 0;
+      Vtdot = 0;
+      dX = [rdot,tLdot,pLdot,Vmdot,tmdot,pmdot,Vtdot,ttdot,ptdot];
     end
   end
 end
