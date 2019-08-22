@@ -1,7 +1,7 @@
 % Generated on: 190822
 % Last modification: 190822
 % Author: Suwon Lee from Seoul National University
-function [t,Sms,Ims,Sts,Its] = ODERK4(timespan,timestep,missile,target)
+function [t,Sms,Ims,Sts,Its] = ODERK4(timespan,timestep,missile,target,GLfcnHandle)
   K = vehicleKinematics(missile,target);
   [Sm,Im] = missile.obj2statesNinputs;
   [St,It] = target.obj2statesNinputs;
@@ -20,7 +20,8 @@ function [t,Sms,Ims,Sts,Its] = ODERK4(timespan,timestep,missile,target)
     Sm = updateState_RK4(Sm,Im,timestep);
     St = updateState_RK4(St,It,timestep);
     
-    [Az,Ay] = GL_PPNG(K);
+%     [Az,Ay] = GL_PPNG(K);
+    [Az,Ay] = GLfcnHandle(K);
     Im = [Az,Ay];
     It = [0,0];
 
