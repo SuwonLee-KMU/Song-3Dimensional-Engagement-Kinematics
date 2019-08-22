@@ -59,7 +59,7 @@ classdef vehicleKinematics < handle
     end
   end
 
-  methods (Hidden, Access=private)  % for computing auxiliary variables
+  methods % for computing auxiliary variables
     function updateTransients(obj)
       relPos        = obj.target.position-obj.missile.position;
       range         = norm(relPos);
