@@ -97,11 +97,13 @@ classdef painter < handle
       fig = figure(fignum);
       [t,Em,Nm,Um,Vm,gm,cm,Et,Nt,Ut,Vt,gt,ct] = obj.demuxStates;
       [Azm,Aym,Azt,Ayt] = obj.demuxInputs;
-      plot(t,Azm,'linewidth',2);
+      p1 = plot(t,Azm,'linewidth',2);
       hold on;
-      plot(t,Aym,'linewidth',2);
+      p2 = plot(t,Aym,'linewidth',2);
       hold off;
       grid on; box on;
+      ylabel('Acelerations [m/s^2]');
+      legend([p1,p2],{'A_{z}','A_{y}'},'fontsize',20);
     end
     function fig = LOS(obj,fignum,kindnumber)
       [r,tL,pL,Vm,tm,pm,Vt,tt,pt] = obj.demuxLOSstates;
@@ -109,26 +111,40 @@ classdef painter < handle
       switch kindnumber
       case 1
         plot(obj.time,r,'linewidth',2);
-        ylabel('r [m]');
+        ylabel('r [m]','fontsize',20);
       case 2
         p1 = plot(obj.time,tL,'linewidth',2);
         hold on;
         p2 = plot(obj.time,pL,'linewidth',2);
         hold off;
         legend([p1,p2],{'\theta_L','\psi_L'});
+        ylabel('LOS Angles [deg]');
       case 3
         p1 = plot(obj.time,tm,'linewidth',2);
         hold on;
         p2 = plot(obj.time,pm,'linewidth',2);
         hold off;
         legend([p1,p2],{'\theta_m','\psi_m'});
+        ylabel('Missile Attitude [deg]');
       otherwise
         p1 = plot(obj.time,tt,'linewidth',2);
         hold on;
         p2 = plot(obj.time,pt,'linewidth',2);
         hold off;
         legend([p1,p2],{'\theta_t','\psi_t'});
+        ylabel('Target Attitude [deg]');
       end
+      grid on; box on;
+    end
+    function fig = spd(obj,fignum)
+      fig = figure(fignum);
+      [t,Em,Nm,Um,Vm,gm,cm,Et,Nt,Ut,Vt,gt,ct] = obj.demuxStates;
+      p1 = plot(t,Vm,'linewidth',2,'color','k');
+      hold on;
+      p2 = plot(t,Vt,'linewidth',2,'color','r');
+      hold off;
+      ylabel('Speed [m/s]');
+      legend([p1,p2],{'V_m','V_t'});
       grid on; box on;
     end
   end
