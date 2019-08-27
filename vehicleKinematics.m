@@ -1,7 +1,7 @@
 % Generated on: 190820
 % Last modification: 190820
 % Author: Suwon Lee
-% Reference:  Seong-Ho Song and In-Joong Ha, ?œA Lyapunov-like approach to performance analysis of 3-dimensional pure PNG laws,?? IEEE Trans. Aerosp. Electron. Syst., vol. 30, no. 1, pp. 238??248, 1994.
+% Reference:  Seong-Ho Song and In-Joong Ha, ?ï¿½A Lyapunov-like approach to performance analysis of 3-dimensional pure PNG laws,?? IEEE Trans. Aerosp. Electron. Syst., vol. 30, no. 1, pp. 238??248, 1994.
 %             http://ieeexplore.ieee.org/document/250424/
 
 classdef vehicleKinematics < handle
@@ -15,6 +15,7 @@ classdef vehicleKinematics < handle
     missileElevation
     targetAzimuth
     targetElevation
+    bodyGravity
   end
 
   methods (Hidden)
@@ -40,6 +41,9 @@ classdef vehicleKinematics < handle
         error('invalid target input');
       end
     end
+  end
+
+  methods % for computing auxiliary variables
     function [statesVector,inputVector] = obj2statesNinputs(obj) 
       Vt = obj.target.speed;
       tt = obj.targetElevation;
@@ -57,9 +61,6 @@ classdef vehicleKinematics < handle
       statesVector = [r, tL, pL, Vm, tm, pm, Vt, tt, pt];
       inputVector  = [Azm,Aym, Azt,Ayt];
     end
-  end
-
-  methods % for computing auxiliary variables
     function updateTransients(obj)
       relPos        = obj.target.position-obj.missile.position;
       range         = norm(relPos);
@@ -67,7 +68,7 @@ classdef vehicleKinematics < handle
       LOSelevation_ = atan2(relPos(3),norm(relPos(1:2)));
       [missileElevation_,missileAzimuth_] = obj.getRelativeAngles(obj.missile.chi*pi/180,obj.missile.gamma*pi/180,LOSazimuth_,LOSelevation_);
       [targetElevation_,targetAzimuth_] = obj.getRelativeAngles(obj.target.chi*pi/180,obj.target.gamma*pi/180,LOSazimuth_,LOSelevation_);
-      
+
       obj.range             = range;
       obj.LOSazimuth        = 180/pi*LOSazimuth_;
       obj.LOSelevation      = 180/pi*LOSelevation_;
@@ -75,6 +76,32 @@ classdef vehicleKinematics < handle
       obj.missileElevation  = 180/pi*missileElevation_;
       obj.targetAzimuth     = 180/pi*targetAzimuth_;
       obj.targetElevation   = 180/pi*targetElevation_;
+      obj.bodyGravity       = obj.gravInBody;
+    end
+    function [tL,pL,tm,pm] = shortRepresentation(obj)
+      tL    = obj.LOSelevation;
+      pL    = obj.LOSazimuth;
+      tm    = obj.missileElevation;
+      pm    = obj.missileAzimuth;
+    end
+    function g_body = gravInBody(obj)
+      [tL,pL,tm,pm] = obj.shortRepresentation;
+      gx = -cosd(tm)*cosd(pm)*sind(tL) - sind(tm)*cosd(tL);
+      gy = -sind(pm)*sin(tL);
+      gz = sind(tm)*cosd(pm)*sind(tL) - cosd(tm)*cosd(tL);
+      g_body = [gx;gy;gz]*9.801;
+    end
+
+    function conditions = stopCond(obj) % develop simulation stop condition
+      [SK,IK] = obj.obj2statesNinputs;
+      dX      = obj.dynamics(SK,IK);
+      rdot = dX(1);
+      r    = obj.range;
+
+      conditions = struct('condName',{'interception'},'status',{false});;
+      if all([rdot>0,r<20])
+        conditions.status(1) = true;
+      end
     end
   end
 
