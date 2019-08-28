@@ -85,7 +85,7 @@ classdef flightVehicle < handle
     function propChange(metaProp,eventData)
        h = eventData.AffectedObject;
        propName = metaProp.Name;
-       disp(['The ',propName,' property has changed.'])
+       % disp(['The ',propName,' property has changed.'])
        h.updateDerivatives();
     end
   end

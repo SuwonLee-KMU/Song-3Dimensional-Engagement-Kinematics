@@ -103,6 +103,34 @@ classdef vehicleKinematics < handle
         conditions.status(1) = true;
       end
     end
+    
+    function dX = dynamics(obj,statesVector,inputVector)
+      r = statesVector(1);
+      tL = statesVector(2);
+      pL = statesVector(3);
+      Vm = statesVector(4);
+      tm = statesVector(5);
+      pm = statesVector(6);
+      Vt = statesVector(7);
+      tt = statesVector(8);
+      pt = statesVector(9);
+      Azm = inputVector(1);
+      Aym = inputVector(2);
+      Azt = inputVector(3);
+      Ayt = inputVector(4);
+
+      gb    = obj.gravInBody;
+      rdot  = Vt*cosd(tt)*cosd(pt)-Vm*cosd(tm)*cosd(pm);
+      tLdot = 1/r*(Vt*sind(tt)-Vm*sind(tm));
+      pLdot = 1/(r*cosd(tL))*(Vt*cosd(tt)*sind(pt)-Vm*cosd(tm)*sind(pm));
+      tmdot = (Azm+gb(3))/Vm-pLdot*sind(tL)*sind(pm)-tLdot*cosd(pm);
+      pmdot = (Aym+gb(2))/(Vm*cosd(tm))+pLdot*tand(tm)*cosd(pm)*sind(tL)-tLdot*tand(tm)*sind(pm)-pLdot*cosd(tL);
+      ttdot = (Azt+gb(3))/Vt-pLdot*sind(tL)*sind(pt)-tLdot*cosd(pt);
+      ptdot = (Ayt+gb(2))/(Vt*cosd(tt))+pLdot*tand(tt)*cosd(pt)*sind(tL)-tLdot*tand(tt)*sind(pt)-pLdot*cosd(tL);
+      Vmdot = 0;
+      Vtdot = 0;
+      dX = [rdot,tLdot,pLdot,Vmdot,tmdot,pmdot,Vtdot,ttdot,ptdot];
+    end
   end
 
   methods (Static)
@@ -129,31 +157,5 @@ classdef vehicleKinematics < handle
       psi   = atan2(R(2,1),R(2,2));
     end
 
-    function dX = dynamics(statesVector,inputVector)
-      r = statesVector(1);
-      tL = statesVector(2);
-      pL = statesVector(3);
-      Vm = statesVector(4);
-      tm = statesVector(5);
-      pm = statesVector(6);
-      Vt = statesVector(7);
-      tt = statesVector(8);
-      pt = statesVector(9);
-      Azm = inputVector(1);
-      Aym = inputVector(2);
-      Azt = inputVector(3);
-      Ayt = inputVector(4);
-
-      rdot  = Vt*cosd(tt)*cosd(pt)-Vm*cosd(tm)*cosd(pm);
-      tLdot = 1/r*(Vt*sind(tt)-Vm*sind(tm));
-      pLdot = 1/(r*cosd(tL))*(Vt*cosd(tt)*sind(pt)-Vm*cosd(tm)*sind(pm));
-      tmdot = Azm/Vm-pLdot*sind(tL)*sind(pm)-tLdot*cosd(pm);
-      pmdot = Aym/(Vm*cosd(tm))+pLdot*tand(tm)*cosd(pm)*sind(tL)-tLdot*tand(tm)*sind(pm)-pLdot*cosd(tL);
-      ttdot = Azt/Vt-pLdot*sind(tL)*sind(pt)-tLdot*cosd(pt);
-      ptdot = Ayt/(Vt*cosd(tt))+pLdot*tand(tt)*cosd(pt)*sind(tL)-tLdot*tand(tt)*sind(pt)-pLdot*cosd(tL);
-      Vmdot = 0;
-      Vtdot = 0;
-      dX = [rdot,tLdot,pLdot,Vmdot,tmdot,pmdot,Vtdot,ttdot,ptdot];
-    end
   end
 end
