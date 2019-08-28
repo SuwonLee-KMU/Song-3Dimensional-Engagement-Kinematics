@@ -7,17 +7,21 @@ classdef painter < handle
     time
     Sms
     Ims
+    SmDots
     Sts
     Its
+    StDots
   end
 
   methods (Hidden)
-    function obj = painter(time,missileStates,missileInputs,targetStates,targetInputs)
-      obj.time = time;
-      obj.Sms = missileStates;
-      obj.Ims = missileInputs;
-      obj.Sts = targetStates;
-      obj.Its = targetInputs;
+    function obj = painter(simout)
+      obj.time = simout.t;
+      obj.Sms = simout.Sms;
+      obj.Ims = simout.Ims;
+      obj.Sts = simout.Sts;
+      obj.Its = simout.Its;
+      obj.SmDots = simout.SmDots;
+      obj.StDots = simout.StDots;
     end
     function [t,Em,Nm,Um,Vm,gm,cm,Et,Nt,Ut,Vt,gt,ct] = demuxStates(obj)
       t  = obj.time;

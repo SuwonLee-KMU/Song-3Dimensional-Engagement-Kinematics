@@ -1,7 +1,7 @@
 % Generated on: 190822
 % Last modification: 190822
 % Author: Suwon Lee from Seoul National University
-function [t,Sms,Ims,Sts,Its] = ODERK4(timespan,timestep,missile,target,GLfcnHandle,dragAccFcnHandle)
+function simOut = ODERK4(timespan,timestep,missile,target,GLfcnHandle,dragAccFcnHandle)
   K = vehicleKinematics(missile,target);
   M = K.missile;
   T = K.target;
@@ -9,21 +9,28 @@ function [t,Sms,Ims,Sts,Its] = ODERK4(timespan,timestep,missile,target,GLfcnHand
   [St,It] = target.obj2statesNinputs;
 
   t = timespan(1):timestep:timespan(end);
-  Sms = zeros(numel(t),6);
-  Sts = zeros(numel(t),6);
-  Ims = zeros(numel(t),2);
-  Its = zeros(numel(t),2);
+  Sms    = zeros(numel(t),6);
+  Sts    = zeros(numel(t),6);
+  Ims    = zeros(numel(t),2);
+  Its    = zeros(numel(t),2);
+  SmDots = zeros(numel(t),6);
+  StDots = zeros(numel(t),6);
+  
   for i = 1:numel(t)
     Sms(i,:) = Sm;
     Sts(i,:) = St;
     Ims(i,:) = Im;
     Its(i,:) = It;
-    
+
     missileDragAcc = dragAccFcnHandle(M);
     targetDragAcc  = dragAccFcnHandle(T);
+
+    SmDots(i,:) = vehicleDynamics(Sm,Im,missileDragAcc);
+    StDots(i,:) = vehicleDynamics(St,It,targetDragAcc);
+    
     Sm = updateState_RK4(Sm,Im,timestep,missileDragAcc);
     St = updateState_RK4(St,It,timestep,targetDragAcc);
-    
+
     [Az,Ay] = GLfcnHandle(K);
     Im = [Az,Ay];
     It = [0,0];
@@ -41,6 +48,9 @@ function [t,Sms,Ims,Sts,Its] = ODERK4(timespan,timestep,missile,target,GLfcnHand
   Sts = Sts(1:i,:);
   Ims = Ims(1:i,:);
   Its = Its(1:i,:);
+  SmDots = SmDots(1:i,:);
+  StDots = StDots(1:i,:);
+  simOut = struct('t',t','Sms',Sms,'Ims',Ims,'SmDots',SmDots,'Sts',Sts,'Its',Its,'StDots',StDots);
 end
 
 function nxtState = updateState_RK4(crtState,ctrInput,timeStep,dragAcc)

@@ -9,14 +9,14 @@ T = flightVehicle([1000,0,700],0,0,0);
 K = vehicleKinematics(M,T);
 
 % select function handles and simulate
-rho0 = 1e-3;
+rho0 = 1e-4;
 dragAccFcnHandle    = @(K) DRAG(K,rho0); 
 GLfcnHandle         = @GL_PPNG;
-[t,Sms,Ims,Sts,Its] = ODERK4([0 9],0.01,M,T,GLfcnHandle,dragAccFcnHandle);
+simout = ODERK4([0 9],0.01,M,T,GLfcnHandle,dragAccFcnHandle);
 
 % Initialize painter object
-pnt = painter(t,Sms,Ims,Sts,Its);
-%
+pnt = painter(simout);
+
 set(0,'defaultaxesfontsize',20,'defaultaxeslinewidth',2);
 fig1 = pnt.traj(1);
 fig2 = pnt.acc(2);

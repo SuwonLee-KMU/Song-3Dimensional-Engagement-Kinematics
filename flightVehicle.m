@@ -3,14 +3,21 @@
 % Author: Suwon Lee
 
 classdef flightVehicle < handle
-  properties
+  properties (SetObservable)
     position  % in ENU coordinate, [m]
     speed     % aligned with body x-axis, [m/s]
     gamma     % upward angle from EN-plane, [deg]
     chi       % CCW-angle from E-axis direction, [deg]
               % the rotation order: 3-2(-1), the bank is not considered.
     Az = 0    % acceleration in body z-direction, [m/s^2]
-    Ay = 0    % acceleration in body y-direction, [m/s^2]
+    Ay = 0    % acceleration in body y-direction, [m/s^2]  
+    DragAccFcnHandle = @(FV) DRAG(FV,0) % default : no drag model
+  end
+  properties(Transient)
+    positionDot
+    speedDot
+    gammaDot
+    chiDot
   end
 
   methods (Hidden)
@@ -19,6 +26,17 @@ classdef flightVehicle < handle
       obj.speed     = speed;
       obj.gamma     = gamma;
       obj.chi       = chi;
+      obj.attachListner;
+      obj.updateDerivatives;
+    end
+    function attachListner(obj)
+      addlistener(obj,'position','PostSet',@flightVehicle.propChange);
+      addlistener(obj,'speed','PostSet',@flightVehicle.propChange);
+      addlistener(obj,'gamma','PostSet',@flightVehicle.propChange);
+      addlistener(obj,'chi','PostSet',@flightVehicle.propChange);
+      addlistener(obj,'Az','PostSet',@flightVehicle.propChange);
+      addlistener(obj,'Ay','PostSet',@flightVehicle.propChange);
+      addlistener(obj,'DragAccFcnHandle','PostSet',@flightVehicle.propChange);
     end
   end
 
@@ -31,15 +49,26 @@ classdef flightVehicle < handle
       angle = wrapTo180(value);
       obj.gamma = angle;
     end
+    function updateDerivatives(obj)
+      dragAcc = obj.DragAccFcnHandle(obj);
+      S       = [obj.position(:)',obj.speed,obj.gamma,obj.chi];
+      I       = [obj.Az,obj.Ay];
+      dX      = vehicleDynamics(S,I,dragAcc);
+      obj.positionDot = dX(1:3);
+      obj.speedDot    = dX(4);
+      obj.gammaDot    = dX(5);
+      obj.chiDot      = dX(6);
+    end
 
     function newObj = duplicate(obj)
       newObj    = flightVehicle(obj.position,obj.speed,obj.chi,obj.gamma);
       newObj.Ay = obj.Ay;
       newObj.Az = obj.Az;
     end
-    function [statesVector,inputVector] = obj2statesNinputs(obj)
-      statesVector = [obj.position(:)',obj.speed,obj.gamma,obj.chi];
-      inputVector  = [obj.Az,obj.Ay];
+    function [statesVector,inputVector,statesDotVector] = obj2statesNinputs(obj)
+      statesVector    = [obj.position(:)',obj.speed,obj.gamma,obj.chi];
+      statesDotVector = [obj.positionDot(:)',obj.speedDot, obj.gammaDot,obj.chiDot];
+      inputVector     = [obj.Az,obj.Ay];
     end
 
     function updateFromStates(obj,statesVector,inputVector)
@@ -52,24 +81,12 @@ classdef flightVehicle < handle
     end
   end
 
-  methods (Static)
-    function dX = dynamics(statesVector,inputVector)
-      E = statesVector(1);
-      N = statesVector(2);
-      U = statesVector(3);
-      V = statesVector(4);
-      gam = statesVector(5);
-      chi = statesVector(6);
-      Az = inputVector(1);
-      Ay = inputVector(2);
-
-      Edot = V*cosd(gam)*sind(chi);
-      Ndot = V*cosd(gam)*cosd(chi);
-      Udot = V*sind(gam);
-      Vdot = 0;
-      gamdot = Az/V*180/pi;
-      chidot = Ay/V*180/pi;
-      dX = [Edot,Ndot,Udot,Vdot,gamdot,chidot];
+  methods (Static, Hidden)  % For event listner callback
+    function propChange(metaProp,eventData)
+       h = eventData.AffectedObject;
+       propName = metaProp.Name;
+       disp(['The ',propName,' property has changed.'])
+       h.updateDerivatives();
     end
   end
 end

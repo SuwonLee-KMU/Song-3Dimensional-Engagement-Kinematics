@@ -99,7 +99,7 @@ classdef vehicleKinematics < handle
       r    = obj.range;
 
       conditions = struct('condName',{'interception'},'status',{false});;
-      if all([rdot>0,r<20])\
+      if all([rdot>0,r<20])
         conditions.status(1) = true;
       end
     end
