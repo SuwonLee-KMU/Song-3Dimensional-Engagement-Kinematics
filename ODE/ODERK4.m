@@ -1,7 +1,7 @@
 % Generated on: 190822
 % Last modification: 190822
 % Author: Suwon Lee from Seoul National University
-function simOut = ODERK4(timespan,timestep,missile,target,GLfcnHandle,dragAccFcnHandle)
+function simOut = ODERK4(timespan,timestep,missile,target,GLfcnHandle)
   K = vehicleKinematics(missile,target);
   M = K.missile;
   T = K.target;
@@ -22,8 +22,8 @@ function simOut = ODERK4(timespan,timestep,missile,target,GLfcnHandle,dragAccFcn
     Ims(i,:) = Im;
     Its(i,:) = It;
 
-    missileDragAcc = dragAccFcnHandle(M);
-    targetDragAcc  = dragAccFcnHandle(T);
+    missileDragAcc = M.DragAccFcnHandle(M);
+    targetDragAcc  = T.DragAccFcnHandle(T);
 
     SmDots(i,:) = vehicleDynamics(Sm,Im,missileDragAcc);
     StDots(i,:) = vehicleDynamics(St,It,targetDragAcc);

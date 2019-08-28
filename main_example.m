@@ -4,15 +4,14 @@ clear all; clc;
 addpath(genpath('./'));
 
 % Initialize missile, target, and kinematics objects
-M = flightVehicle([0,0,0],200,10,45);
-T = flightVehicle([1000,0,700],0,0,0);
+rho0 = 1e-4;
+M = flightVehicle([0,0,0],200,10,45,'DragAccFcnHandle',@(FV)DRAG(FV,rho0));
+T = flightVehicle([1000,0,700],0,0,0,'DragAccFcnHandle',@(FV)DRAG(FV,rho0));
 K = vehicleKinematics(M,T);
 
-% select function handles and simulate
-rho0 = 1e-4;
-dragAccFcnHandle    = @(K) DRAG(K,rho0); 
+% select function handles and simulate 
 GLfcnHandle         = @GL_PPNG;
-simout = ODERK4([0 9],0.01,M,T,GLfcnHandle,dragAccFcnHandle);
+simout = ODERK4([0 9],0.01,M,T,GLfcnHandle);
 
 % Initialize painter object
 pnt = painter(simout);

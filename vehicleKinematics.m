@@ -8,6 +8,8 @@ classdef vehicleKinematics < handle
   properties
     missile           % pursuer, flightVehicle class instance
     target            % target, flightVehicle class instance
+  end
+  properties (Transient)
     range             % range between target and missile
     LOSazimuth
     LOSelevation
@@ -16,6 +18,14 @@ classdef vehicleKinematics < handle
     targetAzimuth
     targetElevation
     bodyGravity
+
+    rangeDot;
+    LOSazimuthDot
+    LOSelevationDot
+    missileAzimuthDot
+    missileElevationDot
+    targetAzimuthDot
+    targetElevationDot
   end
 
   methods (Hidden)
@@ -23,6 +33,7 @@ classdef vehicleKinematics < handle
       obj.missile = missile;
       obj.target  = target;
       obj.updateTransients;
+      obj.updateDerivatives;
     end
   end
 
@@ -67,7 +78,7 @@ classdef vehicleKinematics < handle
       LOSazimuth_   = atan2(relPos(2),relPos(1));
       LOSelevation_ = atan2(relPos(3),norm(relPos(1:2)));
       [missileElevation_,missileAzimuth_] = obj.getRelativeAngles(obj.missile.chi*pi/180,obj.missile.gamma*pi/180,LOSazimuth_,LOSelevation_);
-      [targetElevation_,targetAzimuth_] = obj.getRelativeAngles(obj.target.chi*pi/180,obj.target.gamma*pi/180,LOSazimuth_,LOSelevation_);
+      [targetElevation_,targetAzimuth_]   = obj.getRelativeAngles(obj.target.chi*pi/180,obj.target.gamma*pi/180,LOSazimuth_,LOSelevation_);
 
       obj.range             = range;
       obj.LOSazimuth        = 180/pi*LOSazimuth_;
@@ -104,20 +115,38 @@ classdef vehicleKinematics < handle
       end
     end
     
-    function dX = dynamics(obj,statesVector,inputVector)
-      r = statesVector(1);
-      tL = statesVector(2);
-      pL = statesVector(3);
-      Vm = statesVector(4);
-      tm = statesVector(5);
-      pm = statesVector(6);
-      Vt = statesVector(7);
-      tt = statesVector(8);
-      pt = statesVector(9);
-      Azm = inputVector(1);
-      Aym = inputVector(2);
-      Azt = inputVector(3);
-      Ayt = inputVector(4);
+    function dX = dynamics(obj,varargin)
+      if nargin == 1
+        r = obj.range;
+        tL = obj.LOSelevation;
+        pL = obj.LOSazimuth;
+        tm = obj.missileElevation;
+        pm = obj.missileAzimuth;
+        tt = obj.targetElevation;
+        pt = obj.targetAzimuth;
+        Vm = obj.missile.speed;
+        Vt = obj.target.speed;
+        Azm = obj.missile.Az;
+        Aym = obj.missile.Ay;
+        Azt = obj.target.Az;
+        Ayt = obj.target.Ay;
+      else
+        statesVector = varargin{1};
+        inputVector  = varargin{2};
+        r = statesVector(1);
+        tL = statesVector(2);
+        pL = statesVector(3);
+        Vm = statesVector(4);
+        tm = statesVector(5);
+        pm = statesVector(6);
+        Vt = statesVector(7);
+        tt = statesVector(8);
+        pt = statesVector(9);
+        Azm = inputVector(1);
+        Aym = inputVector(2);
+        Azt = inputVector(3);
+        Ayt = inputVector(4);
+      end
 
       gb    = obj.gravInBody;
       rdot  = Vt*cosd(tt)*cosd(pt)-Vm*cosd(tm)*cosd(pm);
@@ -127,9 +156,19 @@ classdef vehicleKinematics < handle
       pmdot = (Aym+gb(2))/(Vm*cosd(tm))+pLdot*tand(tm)*cosd(pm)*sind(tL)-tLdot*tand(tm)*sind(pm)-pLdot*cosd(tL);
       ttdot = (Azt+gb(3))/Vt-pLdot*sind(tL)*sind(pt)-tLdot*cosd(pt);
       ptdot = (Ayt+gb(2))/(Vt*cosd(tt))+pLdot*tand(tt)*cosd(pt)*sind(tL)-tLdot*tand(tt)*sind(pt)-pLdot*cosd(tL);
-      Vmdot = 0;
-      Vtdot = 0;
+      Vmdot = obj.missile.speedDot;
+      Vtdot = obj.target.speedDot;
       dX = [rdot,tLdot,pLdot,Vmdot,tmdot,pmdot,Vtdot,ttdot,ptdot];
+    end
+    function updateDerivatives(obj)
+      dX = obj.dynamics;
+      obj.rangeDot            = dX(1);
+      obj.LOSelevationDot     = dX(2);
+      obj.LOSazimuthDot       = dX(3);
+      obj.missileElevationDot = dX(5);
+      obj.missileAzimuthDot   = dX(6);
+      obj.targetElevationDot  = dX(8);
+      obj.targetAzimuthDot    = dX(9);
     end
   end
 
@@ -156,6 +195,5 @@ classdef vehicleKinematics < handle
       theta = atan2(R(1,3),R(3,3));
       psi   = atan2(R(2,1),R(2,2));
     end
-
   end
 end

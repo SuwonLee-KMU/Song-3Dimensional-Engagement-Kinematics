@@ -21,11 +21,16 @@ classdef flightVehicle < handle
   end
 
   methods (Hidden)
-    function obj = flightVehicle(position,speed,gamma,chi)
+    function obj = flightVehicle(position,speed,gamma,chi,varargin)
       obj.position  = position;
       obj.speed     = speed;
       obj.gamma     = gamma;
       obj.chi       = chi;
+      idx = find(strcmp(varargin,'DragAccFcnHandle'));
+      if ~isempty(idx)
+        obj.DragAccFcnHandle = varargin{idx+1};
+      end
+
       obj.attachListner;
       obj.updateDerivatives;
     end
