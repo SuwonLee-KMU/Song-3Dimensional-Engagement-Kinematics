@@ -109,9 +109,12 @@ classdef vehicleKinematics < handle
       rdot = dX(1);
       r    = obj.range;
 
-      conditions = struct('condName',{'interception'},'status',{false});;
+      conditions = struct('condName',{'interception'},'status',{false});
       if all([rdot>0,r<20])
         conditions.status(1) = true;
+      end
+      if obj.missile.speed < 100
+        conditions.status(2) = true;
       end
     end
     
