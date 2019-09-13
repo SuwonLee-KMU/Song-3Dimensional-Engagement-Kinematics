@@ -11,13 +11,6 @@ classdef painter < handle
     Sts
     Its
     StDots
-    tmd
-    pmd
-    r
-    tL
-    pL
-    tm
-    pm
   end
 
   methods (Hidden)
@@ -29,13 +22,6 @@ classdef painter < handle
       obj.Its = simout.Its;
       obj.SmDots = simout.SmDots;
       obj.StDots = simout.StDots;
-      obj.tmd = simout.tmds;
-      obj.pmd = simout.pmds;
-      obj.r = simout.r;
-      obj.tL = simout.tL;
-      obj.pL = simout.pL;
-      obj.tm = simout.tm;
-      obj.pm = simout.pm;
     end
     function [t,Em,Nm,Um,Vm,gm,cm,Et,Nt,Ut,Vt,gt,ct] = demuxStates(obj)
       t  = obj.time;
@@ -124,28 +110,25 @@ classdef painter < handle
       legend([p1,p2],{'A_{z}','A_{y}'},'fontsize',20);
     end
     function fig = LOS(obj,fignum,kindnumber)
+      [r,tL,pL,Vm,tm,pm,Vt,tt,pt] = obj.demuxLOSstates;
       fig = figure(fignum);
       switch kindnumber
       case 1
-        plot(obj.time,obj.r,'linewidth',2);
+        plot(obj.time,r,'linewidth',2);
         ylabel('r [m]','fontsize',20);
       case 2
-        p1 = plot(obj.time,obj.tL,'linewidth',2);
+        p1 = plot(obj.time,tL,'linewidth',2);
         hold on;
-        p2 = plot(obj.time,obj.pL,'linewidth',2);
+        p2 = plot(obj.time,pL,'linewidth',2);
         hold off;
         legend([p1,p2],{'\theta_L','\psi_L'});
         ylabel('LOS Angles [deg]');
       case 3
-        p1 = plot(obj.time,obj.tm,'linewidth',2);
+        p1 = plot(obj.time,tm,'linewidth',2);
         hold on;
-        p2 = plot(obj.time,obj.pm,'linewidth',2);
-        p1d =plot(obj.time,obj.tmd(:,1),'linestyle','--','linewidth',2,'color',p1.Color);
-        p2d = plot(obj.time,obj.pmd(:,1),'linestyle',':','linewidth',2,'color',p2.Color);
-        set(p1,'color',[p1.Color,0.2]);
-        set(p2,'color',[p2.Color,0.2]);
+        p2 = plot(obj.time,pm,'linewidth',2);
         hold off;
-        legend([p1,p2,p1d,p2d],{'\theta_m','\psi_m','\theta_m^d','\psi_m^d'});
+        legend([p1,p2],{'\theta_m','\psi_m'});
         ylabel('Missile Attitude [deg]');
       otherwise
         p1 = plot(obj.time,tt,'linewidth',2);

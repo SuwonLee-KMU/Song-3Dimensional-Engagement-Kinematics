@@ -3,7 +3,7 @@
 % Author: Suwon Lee
 
 classdef flightVehicle < handle
-  properties (SetObservable)
+  properties
     position  % in ENU coordinate, [m]
     speed     % aligned with body x-axis, [m/s]
     gamma     % upward angle from EN-plane, [deg]
@@ -30,18 +30,7 @@ classdef flightVehicle < handle
       if ~isempty(idx)
         obj.DragAccFcnHandle = varargin{idx+1};
       end
-
-      obj.attachListner;
       obj.updateDerivatives;
-    end
-    function attachListner(obj)
-      addlistener(obj,'position','PostSet',@flightVehicle.propChange);
-      addlistener(obj,'speed','PostSet',@flightVehicle.propChange);
-      addlistener(obj,'gamma','PostSet',@flightVehicle.propChange);
-      addlistener(obj,'chi','PostSet',@flightVehicle.propChange);
-      addlistener(obj,'Az','PostSet',@flightVehicle.propChange);
-      addlistener(obj,'Ay','PostSet',@flightVehicle.propChange);
-      addlistener(obj,'DragAccFcnHandle','PostSet',@flightVehicle.propChange);
     end
   end
 
@@ -83,15 +72,6 @@ classdef flightVehicle < handle
       obj.chi      = statesVector(6);
       obj.Az = inputVector(1);
       obj.Ay = inputVector(2);
-    end
-  end
-
-  methods (Static, Hidden)  % For event listner callback
-    function propChange(metaProp,eventData)
-       h = eventData.AffectedObject;
-       propName = metaProp.Name;
-       % disp(['The ',propName,' property has changed.'])
-       h.updateDerivatives();
     end
   end
 end

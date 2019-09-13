@@ -2,7 +2,7 @@
 % Author: Suwon Lee from Seoul National University
 
 function dX = vehicleDynamics(statesVector,inputVector,dragAcceleration)
-  grav = 9.801*1;
+  grav = 9.801*0;
   E = statesVector(1);
   N = statesVector(2);
   U = statesVector(3);
