@@ -84,12 +84,13 @@ classdef painter < handle
   end
 
   methods 
-    function fig = traj(obj,fignum)
+    function fig = traj(obj,fignum,varargin)
       fig = figure(fignum);
       [t,Em,Nm,Um,Vm,gm,cm,Et,Nt,Ut,Vt,gt,ct] = obj.demuxStates;
-      plot3(Em,Nm,Um,'linewidth',2,'color','k');
+      if isempty(varargin); varargin={'color','k'}; end
+      plot3(Em,Nm,Um,'linewidth',2,varargin{:});
       hold on;
-      plot3(Et,Nt,Ut,'linewidth',2,'color','r');
+%       plot3(Et,Nt,Ut,'linewidth',2,'color','r');
       scatter3(Em(1),Nm(1),Um(1),'marker','s','sizedata',200,'markerfacecolor','k');
       scatter3(Em(end),Nm(end),Um(end),'marker','d','sizedata',200,'markerfacecolor','k');
       scatter3(Et(1),Nt(1),Ut(1),'marker','o','sizedata',200,'markerfacecolor','r');
@@ -109,7 +110,7 @@ classdef painter < handle
       ylabel('Acelerations [m/s^2]');
       legend([p1,p2],{'A_{z}','A_{y}'},'fontsize',20);
     end
-    function fig = LOS(obj,fignum,kindnumber)
+    function fig = LOS(obj,fignum,kindnumber,varargin)
       [r,tL,pL,Vm,tm,pm,Vt,tt,pt] = obj.demuxLOSstates;
       fig = figure(fignum);
       switch kindnumber
@@ -117,23 +118,23 @@ classdef painter < handle
         plot(obj.time,r,'linewidth',2);
         ylabel('r [m]','fontsize',20);
       case 2
-        p1 = plot(obj.time,tL,'linewidth',2);
+        p1 = plot(obj.time,tL,'linewidth',1,varargin{:});
         hold on;
-        p2 = plot(obj.time,pL,'linewidth',2);
+        p2 = plot(obj.time,pL,'linewidth',1,'linestyle','--',varargin{:});
         hold off;
         legend([p1,p2],{'\theta_L','\psi_L'});
         ylabel('LOS Angles [deg]');
       case 3
-        p1 = plot(obj.time,tm,'linewidth',2);
+        p1 = plot(obj.time,tm,'linewidth',1,varargin{:});
         hold on;
-        p2 = plot(obj.time,pm,'linewidth',2);
+        p2 = plot(obj.time,pm,'linewidth',1,'linestyle','--',varargin{:});
         hold off;
         legend([p1,p2],{'\theta_m','\psi_m'});
         ylabel('Missile Attitude [deg]');
       otherwise
-        p1 = plot(obj.time,tt,'linewidth',2);
+        p1 = plot(obj.time,tt,'linewidth',1,varargin{:});
         hold on;
-        p2 = plot(obj.time,pt,'linewidth',2);
+        p2 = plot(obj.time,pt,'linewidth',1,'linestyle','--',varargin{:});
         hold off;
         legend([p1,p2],{'\theta_t','\psi_t'});
         ylabel('Target Attitude [deg]');
