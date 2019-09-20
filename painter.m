@@ -15,7 +15,7 @@ classdef painter < handle
 
   methods (Hidden)
     function obj = painter(simout)
-      obj.time = simout.t;
+      obj.time = simout.time;
       obj.Sms = simout.Sms;
       obj.Ims = simout.Ims;
       obj.Sts = simout.Sts;
@@ -98,17 +98,18 @@ classdef painter < handle
       xlabel('E [m]'); ylabel('N [m]'); zlabel('U [m]');
       grid on; box on; axis equal;
     end
-    function fig = acc(obj,fignum)
+    function fig = acc(obj,fignum,varargin)
       fig = figure(fignum);
       [t,Em,Nm,Um,Vm,gm,cm,Et,Nt,Ut,Vt,gt,ct] = obj.demuxStates;
       [Azm,Aym,Azt,Ayt] = obj.demuxInputs;
-      p1 = plot(t,Azm,'linewidth',2);
+      p1 = plot(t,Azm,varargin{:});
       hold on;
-      p2 = plot(t,Aym,'linewidth',2);
+      p2 = plot(t,Aym,'linestyle','--',varargin{:});
       hold off;
       grid on; box on;
       ylabel('Acelerations [m/s^2]');
-      legend([p1,p2],{'A_{z}','A_{y}'},'fontsize',20);
+      legend([p1,p2],{'A_{z}','A_{y}'},'fontsize',10);
+      set(gca,'ytick',-50:10:50);
     end
     function fig = LOS(obj,fignum,kindnumber,varargin)
       [r,tL,pL,Vm,tm,pm,Vt,tt,pt] = obj.demuxLOSstates;
