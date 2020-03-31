@@ -15,7 +15,7 @@ classdef painter < handle
 
   methods (Hidden)
     function obj = painter(simout)
-      obj.time = simout.time;
+      obj.time = simout.t;
       obj.Sms = simout.Sms;
       obj.Ims = simout.Ims;
       obj.Sts = simout.Sts;
